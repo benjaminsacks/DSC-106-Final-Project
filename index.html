@@ -5,9 +5,12 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link rel="stylesheet" href="styles.css">
+	<script type="text/javascript" src="app.js">
+    </script> 
+	<script src="https://d3js.org/d3.v7.min.js"></script>	
     <title>DSC 106 Final Project</title>
 </head>
-<body>
+<body onload=plots()>
 	<!-- Title -->
     <h1 style = "padding-top:80px; font-size: 50px;">DSC 106 Final Project: <br>Hate Crimes</h1>
 	<h3 style = "font-weight: lighter;">Benjamin Sacks, Edwin Tse, James Dai</h3>
@@ -15,6 +18,9 @@
 	
 	<h2 style = "padding-top:30px;">Introduction</h2>
 	<p>We chose this dataset because we are not a fan of hate crimes. Our group feels that hate crimes are a very relevant topic in today’s society as they are unfortunately not a rare occurrence. We have learned through our studies at UCSD that data is powerful in telling narratives and understanding trends that may not be immediately obvious. As a result, we feel that by choosing this dataset, we can learn from these previous tragedies to understand and prevent new hate crimes through education. By using geolocation as an attribute we are able to understand which parts of our country do well in its acceptance of diversity and which parts still need improvement. 
+	</p>
+	<p>
+	To deal with the sheer size of our dataset, we have randomly sampled 10% of the data in order to be able to handle it within D3 and properly display it through a web browser. To account for the reduction in size, we have multiplied applicable datapoints by 10 in attempt to keep visualizations as accurate as possible.
 	</p>
 	<h3 style="text-align:center"><br>Guiding Question</h3>
 	<p style="text-align:center">How have hate crimes changed in the United States over the past three decades?</p>
@@ -28,19 +34,23 @@
 		<div id="q1_plot" class="center_plot">
 		</div>
 		
+		<h4>Frequency of Hate Crimes in 2001 (Line Plot)</h4>
+		<div id="q1_2_plot" class="center_plot">
+		</div>
+		
 		<h4>Types of Hate Crimes and Race of Offenders that are Most Common (Stacked Bar Graph)</h4>
 		<div id="q2_plot" class="center_plot">
 		</div>
 		
-		<h4>Count of Crimes Against the Ages of the Cictims (Scatterplot)</h4>
+		<h4>Average Count of Offenders Aggregated by City Against the Average Counts of Victims Aggregated by City (Scatterplot)</h4>
 		<div id="q3_plot" class="center_plot">
 		</div>
 		
-		<h4>Age of the Offenders and the Sex when they Commit the Hate Crime (Box Plot)</h4>
+		<h4>Count of the Juvenile Offenders and the Regions when they Commit the Hate Crime (Box Plot)</h4>
 		<div id="q4_plot" class="center_plot">
 		</div>
 		
-		<h4>Types of Hate Crimes and Race of Victims that are Most Common (Stacked Bar Graph)</h4>
+		<h4>How the Race of the Persecutor of a Hate Crime Relates to the Race of the Victim of a Hate Crime (Heatmap)</h4>
 		<div id="q5_plot" class="center_plot">
 		</div>
 		

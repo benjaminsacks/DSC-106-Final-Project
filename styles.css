@@ -8,6 +8,12 @@ body {
 	padding:0 10px;
 	background-color:#EEEEEE;
 }
+
+.center_plot {
+    margin: auto;
+    text-align: center;
+}
+
 h1,h2,h3{
 	line-height:1.2;
 	}
@@ -36,3 +42,4 @@ li a {
 li a:hover {
   background-color: #111;
 }
+
