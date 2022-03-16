@@ -148,10 +148,37 @@ var question2 = function (filePath) {
         Others: filter_others_array[i], Property: filter_property_array[i]});
     }
     console.log(stack_data);
-    var stack = d3.stack().keys(key);
-    var series = stack(stack_data);
+    var series = d3.stack().keys(key)(stack_data);
     console.log(series);
+    // create a tooltip
+        const Tooltip = svg_q2
+                        .append("text")
+                        .attr("text-anchor", "end")
+                        .attr("x", 650)
+                        .attr("y", 600)
+                        .style("opacity", 0)
+                        .style("font-size", 17);
 
+    // Three function that change the tooltip when user hover / move / leave a cell
+      const mouseover = function(event,d) {
+        Tooltip.style("opacity", 1)
+        d3.selectAll(".gbars").style("opacity", .2)
+        console.log(this)
+        d3.select(this).style("fill", "black")
+        d3.select(this.parentNode)
+          .style("stroke", "black")
+          .style("opacity", 1)
+      }
+      const mousemove = function(event,d,i) {
+        grp = d3.select(this.parentNode).datum().key;
+        val = d.data[grp];
+        Tooltip.text(grp + ". There are " + val + " counts of "+ grp);
+      }
+      const mouseleave = function(event,d) {
+        Tooltip.style("opacity", 0)
+        d3.selectAll(".gbars").style("opacity", 1).style("stroke", "none")
+        d3.select(this).style("fill", d3.select(this.parentNode).attr("fill"))
+       }
     // plotting stacked bar chart
     var xScale = d3.scaleBand()
 						.domain(d3.range(victim_race_arr.length))
@@ -178,12 +205,38 @@ var question2 = function (filePath) {
                         return xScale.bandwidth();
                     }).attr("height", function(d) {
                         return yScale(d[0])-yScale(d[1]);
-                    });
+                    }).on("mouseover", mouseover)
+                    .on("mousemove", mousemove)
+                    .on("mouseleave", mouseleave);
 
     var xAxis = d3.axisBottom().scale(xScale);
     xAxis.tickFormat((d,i) => victim_race_arr[i]);
     var yAxis = d3.axisLeft().scale(yScale);
     svg_q2.append("g").call(xAxis).attr("class", "xAxis").attr("transform","translate(0,550)");
     svg_q2.append("g").call(yAxis).attr("class", "yAxis").attr("transform","translate(150,0)");
+
+
+      // Legend
+      // Add one dot in the legend for each name.
+      svg_q2.selectAll("mydots2")
+        .data(key)
+        .enter()
+        .append("circle")
+          .attr("cx", 550)
+          .attr("cy", function(d,i){ return 100 + i*25}) // 100 is where the first dot appears. 25 is the distance between dots
+          .attr("r", 7)
+          .style("fill", function(d, i){ return d3.schemeCategory10[i]})
+
+      // Add one dot in the legend for each name.
+      svg_q2.selectAll("mylabels2")
+        .data(key)
+        .enter()
+        .append("text")
+          .attr("x", 570)
+          .attr("y", function(d,i){ return 100 + i*25}) // 100 is where the first dot appears. 25 is the distance between dots
+          .style("fill", function(d, i){ return d3.schemeCategory10[i]})
+          .text(function(d){ return d})
+          .attr("text-anchor", "left")
+          .style("alignment-baseline", "middle")
   });
 }
