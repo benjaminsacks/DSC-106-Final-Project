@@ -170,9 +170,10 @@ var question2 = function (filePath) {
           .style("opacity", 1)
       }
       const mousemove = function(event,d,i) {
+        console.log(d.data)
         grp = d3.select(this.parentNode).datum().key;
         val = d.data[grp];
-        Tooltip.text(grp + ". There are " + val + " counts of "+ grp);
+        Tooltip.text("There are " + val + " counts of "+ grp + " recorded for " + d.data.Victim_race);
       }
       const mouseleave = function(event,d) {
         Tooltip.style("opacity", 0)
