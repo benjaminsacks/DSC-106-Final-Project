@@ -1,6 +1,8 @@
 function plots() {
     var q1_filePath = "data/q1_1.csv";
+	var q1_2_filePath = "data/q1_2.csv";
     question1(q1_filePath);
+	question1_2(q1_2_filePath);
 
 }
 
@@ -46,3 +48,8 @@ var question1 = function (filePath) {
 			)
 	});
 }
+
+var question1_2 = function (filePath) {
+	const dataset = d3.csv(filePath);
+	
+});
