@@ -3,6 +3,7 @@ function plots() {
 	var q1_2_filePath = "data/q1_2.csv";
     question1(filePath);
 	question1_2(q1_2_filePath);
+  question2(filePath);
 
 }
 
@@ -105,5 +106,84 @@ var question1_2 = function (filePath) {
 
 var question2 = function (filePath) {
 	const dataset = d3.csv(filePath);
+  var svgheight_q2 = 700;
+  var svgwidth_q2 = 700;
+  var padding = 150;
+  svg_q2 = d3.select("#q2_plot").append("svg").attr("id", "q2plot").attr("width", svgwidth_q2).attr("height", svgheight_q2);
+  const data_frame = d3.csv(filePath);
+  data_frame.then(function(data){
+    var grouped_race = d3.flatRollup(data, v => v.length, d => d.Victim_race, d => d.Offense);
+    var flatten_race = grouped_race.map(([Victim_race, Offense, Count]) => ({Offense, Victim_race, Count}));
+    console.log(flatten_race);
+    var key = ["Assault", "Intimidation", "Others", "Property"];
+    console.log(flatten_race);
+    var filter_assault = flatten_race.filter(function(d){
+      if (d["Offense"] == "Assault") {
+        return d;
+      }
+    });
+    var filter_assault_array = filter_assault.map(function(d) {return d.Count;})
+    var filter_intimidation = flatten_race.filter(function(d){
+      if (d["Offense"] == "Intimidation") {
+        return d;
+      }
+    });
+    var filter_intimidation_array = filter_intimidation.map(function(d) {return d.Count;});
+    var filter_others = flatten_race.filter(function(d){
+      if (d["Offense"] == "Others") {
+        return d;
+      }
+    });
+    var filter_others_array = filter_others.map(function(d) {return d.Count;});
+    var filter_property = flatten_race.filter(function(d){
+      if (d["Offense"] == "Property") {
+        return d;
+      }
+    });
+    var filter_property_array = filter_property.map(function(d) {return d.Count;});
+    var victim_race_arr = Array.from(d3.rollup(flatten_race, v => v.length, d => d.Victim_race).keys())
+    var stack_data = [];
+    for (let i = 0; i < victim_race_arr.length; i++) {
+      stack_data.push({Victim_race: victim_race_arr[i], Assault: filter_assault_array[i], Intimidation: filter_intimidation_array[i],
+        Others: filter_others_array[i], Property: filter_property_array[i]});
+    }
+    console.log(stack_data);
+    var stack = d3.stack().keys(key);
+    var series = stack(stack_data);
+    console.log(series);
 
+    // plotting stacked bar chart
+    var xScale = d3.scaleBand()
+						.domain(d3.range(victim_race_arr.length))
+						.range([padding, svgwidth_q2-padding])
+						.paddingInner(0.05);
+
+    var yScale = d3.scaleLinear()
+						.domain([0, d3.max(stack_data, function(d){
+							return d.Assault + d.Intimidation + d.Others + d.Property;
+						})])
+						.range([svgheight_q2-padding, padding]);
+    /*group bars with respect to the secondary Key */
+    var groups = svg_q2.selectAll(".gbars").data(series).enter().append("g")
+                        .attr("class", "gbars").attr("fill", function(d, i) {return d3.schemeCategory10[i]});
+    //draw a bar for each Key value
+    var rects = groups.selectAll("rect").data(function(d) {
+                        return d;
+                    }).enter().append("rect")
+                    .attr("x", function(d, i) {
+                        return xScale(i);
+                    }).attr("y", function(d) {
+                        return yScale(d[1]);
+                    }).attr("width", function(d) {
+                        return xScale.bandwidth();
+                    }).attr("height", function(d) {
+                        return yScale(d[0])-yScale(d[1]);
+                    });
+
+    var xAxis = d3.axisBottom().scale(xScale);
+    xAxis.tickFormat((d,i) => victim_race_arr[i]);
+    var yAxis = d3.axisLeft().scale(yScale);
+    svg_q2.append("g").call(xAxis).attr("class", "xAxis").attr("transform","translate(0,550)");
+    svg_q2.append("g").call(yAxis).attr("class", "yAxis").attr("transform","translate(150,0)");
+  });
 }
