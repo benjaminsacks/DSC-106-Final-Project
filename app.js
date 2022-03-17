@@ -430,37 +430,39 @@ var question6=function(filePath){
   var svgheight_q6 = 700;
   var svgwidth_q6 = 700;
   var padding = 150;
-  svg_q6 = d3.select("#q6_plot").append("svg").attr("id", "q6plot").attr("width", svgwidth_q6).attr("height", svgheight_q6);
-  var projection = d3.geoAlbersUsa()
-    .translate([svgwidth_q6/2,svgheight_q6/2])
-    .scale(1070/960*svgwidth_q6); // scale the scale factor, otherwise map will overflow SVG bounds.
+  svg_q6 = d3.select("#q6_plot").append("svg").attr("id", "q6plot").attr("viewBox", [0, 0, 975, 610]);
+
   const data_frame = d3.csv(filePath);
-  d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson").then(function(geojson){
+  data_frame.then(function(data){
+      // Pre sort the state so that the label would be come out as sorted
+      sorted_state = data.sort((a, b) => d3.ascending(a.State, b.State));
+      var grouped_state = d3.flatRollup(sorted_state,
+          v => v.length,
+          d => d.State);
+      var data = grouped_state.map(([State, Value]) => ({State, Value}));
+      var color = d3.scaleQuantize([1, 7], d3.schemeReds[6])
+      var path = d3.geoPath()
+      var format = d => `${d}%`
+      d3.json("https://cdn.jsdelivr.net/npm/us-atlas@3/states-albers-10m.json").then(function(geojson){
+        svg_q6.append("g")
+          .attr("transform", "translate(610,20)");
 
-      geojson.features = geojson.features.filter( function(d){return d.properties.name=="USA"} )
+        svg_q6.append("g")
+          .selectAll("path")
+          .data(topojson.feature(geojson, geojson.objects.states).features)
+          .join("path")
+            .attr("fill", "blue")
+            .attr("d", path);
 
-   // Draw the map
-   svg_q6.append("g")
-       .selectAll("path")
-       .data(geojson.features)
-       .enter().append("path")
-           .attr("fill", "#69b3a2")
-           .attr("d", d3.geoPath()
-               .projection(projection)
-           )
-           .style("stroke", "#fff");
-
-    data_frame.then(function(data){
-        // Pre sort the state so that the label would be come out as sorted
-        sorted_state = data.sort((a, b) => d3.ascending(a.State, b.State));
-        var grouped_state = d3.flatRollup(sorted_state,
-            v => v.length,
-            d => d.State);
-        var data = grouped_state.map(([State, Value]) => ({State, Value}));
-        //d3.json("https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json").then( function(data) {
-        //d3.json("https://d3js.org/us-10m.v1.json", function(error, us) {
-  })
-
-});
+        svg_q6.append("path")
+            .datum(topojson.mesh(geojson, geojson.objects.states, (a, b) => a !== b))
+            .attr("fill", "none")
+            .attr("stroke", "white")
+            .attr("stroke-linejoin", "round")
+            .attr("d", path);
+      //d3.json("https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json").then( function(data) {
+      //d3.json("https://d3js.org/us-10m.v1.json", function(error, us) {
+    });
+  });
 
 }
