@@ -274,13 +274,16 @@ var question3 = function (filePath) {
           const mouseover = function(event, d) {
             tooltip
               .style("opacity", 1);
+            tooltip
+                  .html(d[0] + "<br> Average of count of offenders: " + d[1] + '<br> Average of count of victims: '+ yScale.invert(d3.select(this).attr("cy")));
+            tooltip.style("left", event.pageX + "px").style("top", event.pageY+ "px");
           };
 
           const mousemove = function(event, d) {
             tooltip
               .style("opacity", 1);
             tooltip
-                .html(d[1] + ', '+ yScale.invert(d3.select(this).attr("cy")));
+                .html(d[0] + "<br> Average of count of offenders: " + d[1] + '<br> Average of count of victims: '+ yScale.invert(d3.select(this).attr("cy")));
             tooltip.style("left", event.pageX + "px").style("top", event.pageY+ "px");
 
           };
