@@ -116,131 +116,272 @@ var question2 = function (filePath) {
   svg_q2 = d3.select("#q2_plot").append("svg").attr("id", "q2plot").attr("width", svgwidth_q2).attr("height", svgheight_q2);
   const data_frame = d3.csv(filePath);
   data_frame.then(function(data){
-    var grouped_race = d3.flatRollup(data, v => v.length, d => d.Victim_race, d => d.Offense);
-    var flatten_race = grouped_race.map(([Victim_race, Offense, Count]) => ({Offense, Victim_race, Count}));
-    console.log(flatten_race);
-    var key = ["Assault", "Intimidation", "Others", "Property"];
-    console.log(flatten_race);
-    var filter_assault = flatten_race.filter(function(d){
-      if (d["Offense"] == "Assault") {
-        return d;
-      }
+    draw(data, true);
+    //radio button
+    d3.selectAll(("input[name='type']")).on("change", function() {
+        if (this.value == "victim") {
+            var check_vic = true;
+        } else if (this.value == "offender") {
+            var check_vic = false;
+        }
+        draw(data, check_vic);
     });
-    var filter_assault_array = filter_assault.map(function(d) {return d.Count;})
-    var filter_intimidation = flatten_race.filter(function(d){
-      if (d["Offense"] == "Intimidation") {
-        return d;
+    function draw(data, victim){
+      svg_q2.selectAll('*').remove();
+      if (victim) {
+        var grouped_race = d3.flatRollup(data, v => v.length, d => d.Victim_race, d => d.Offense);
+        var flatten_race = grouped_race.map(([Victim_race, Offense, Count]) => ({Offense, Victim_race, Count}));
+        console.log(flatten_race);
+        var key = ["Assault", "Intimidation", "Others", "Property"];
+        console.log(flatten_race);
+        var filter_assault = flatten_race.filter(function(d){
+          if (d["Offense"] == "Assault") {
+            return d;
+          }
+        });
+        var filter_assault_array = filter_assault.map(function(d) {return d.Count;})
+        var filter_intimidation = flatten_race.filter(function(d){
+          if (d["Offense"] == "Intimidation") {
+            return d;
+          }
+        });
+        var filter_intimidation_array = filter_intimidation.map(function(d) {return d.Count;});
+        var filter_others = flatten_race.filter(function(d){
+          if (d["Offense"] == "Others") {
+            return d;
+          }
+        });
+        var filter_others_array = filter_others.map(function(d) {return d.Count;});
+        var filter_property = flatten_race.filter(function(d){
+          if (d["Offense"] == "Property") {
+            return d;
+          }
+        });
+        var filter_property_array = filter_property.map(function(d) {return d.Count;});
+        var victim_race_arr = Array.from(d3.rollup(flatten_race, v => v.length, d => d.Victim_race).keys())
+        var stack_data = [];
+        for (let i = 0; i < victim_race_arr.length; i++) {
+          stack_data.push({Victim_race: victim_race_arr[i], Assault: filter_assault_array[i], Intimidation: filter_intimidation_array[i],
+            Others: filter_others_array[i], Property: filter_property_array[i]});
+        }
+        console.log(stack_data);
+        var series = d3.stack().keys(key)(stack_data);
+        console.log(series);
+        // create a tooltip
+            const Tooltip = svg_q2
+                            .append("text")
+                            .attr("text-anchor", "end")
+                            .attr("x", 650)
+                            .attr("y", 600)
+                            .style("opacity", 0)
+                            .style("font-size", 17);
+
+        // Three function that change the tooltip when user hover / move / leave a cell
+          const mouseover = function(event,d) {
+            Tooltip.style("opacity", 1)
+            d3.selectAll(".gbars").style("opacity", .2)
+            d3.select(this).style("fill", "black")
+            d3.select(this.parentNode)
+              .style("stroke", "black")
+              .style("opacity", 1)
+          }
+          const mousemove = function(event,d,i) {
+            grp = d3.select(this.parentNode).datum().key;
+            val = d.data[grp];
+            Tooltip.text("There are " + val + " counts of "+ grp + " recorded for " + d.data.Victim_race + " victims.");
+          }
+          const mouseleave = function(event,d) {
+            Tooltip.style("opacity", 0)
+            d3.selectAll(".gbars").style("opacity", 1).style("stroke", "none")
+            d3.select(this).style("fill", d3.select(this.parentNode).attr("fill"))
+           }
+        // plotting stacked bar chart
+        var xScale = d3.scaleBand()
+    						.domain(d3.range(victim_race_arr.length))
+    						.range([padding, svgwidth_q2-padding])
+    						.paddingInner(0.05);
+
+        var yScale = d3.scaleLinear()
+    						.domain([0, d3.max(stack_data, function(d){
+    							return d.Assault + d.Intimidation + d.Others + d.Property;
+    						})])
+    						.range([svgheight_q2-padding, padding]);
+        /*group bars with respect to the secondary Key */
+        var groups = svg_q2.selectAll(".gbars").data(series).enter().append("g")
+                            .attr("class", "gbars").attr("fill", function(d, i) {return d3.schemeCategory10[i]});
+        //draw a bar for each Key value
+        var rects = groups.selectAll("rect").data(function(d) {
+                            return d;
+                        }).enter().append("rect")
+                        .attr("x", function(d, i) {
+                            return xScale(i);
+                        }).attr("y", function(d) {
+                            return yScale(d[1]);
+                        }).attr("width", function(d) {
+                            return xScale.bandwidth();
+                        }).attr("height", function(d) {
+                            return yScale(d[0])-yScale(d[1]);
+                        }).on("mouseover", mouseover)
+                        .on("mousemove", mousemove)
+                        .on("mouseleave", mouseleave);
+
+        var xAxis = d3.axisBottom().scale(xScale);
+        xAxis.tickFormat((d,i) => victim_race_arr[i]);
+        var yAxis = d3.axisLeft().scale(yScale);
+        svg_q2.append("g").call(xAxis).attr("class", "xAxis").attr("transform","translate(0,550)");
+        svg_q2.append("g").call(yAxis).attr("class", "yAxis").attr("transform","translate(150,0)");
+
+
+          // Legend
+          // Add one dot in the legend for each name.
+          svg_q2.selectAll("mydots2")
+            .data(key)
+            .enter()
+            .append("circle")
+              .attr("cx", 550)
+              .attr("cy", function(d,i){ return 100 + i*25}) // 100 is where the first dot appears. 25 is the distance between dots
+              .attr("r", 7)
+              .style("fill", function(d, i){ return d3.schemeCategory10[i]})
+
+          // Add one dot in the legend for each name.
+          svg_q2.selectAll("mylabels2")
+            .data(key)
+            .enter()
+            .append("text")
+              .attr("x", 570)
+              .attr("y", function(d,i){ return 100 + i*25}) // 100 is where the first dot appears. 25 is the distance between dots
+              .style("fill", function(d, i){ return d3.schemeCategory10[i]})
+              .text(function(d){ return d})
+              .attr("text-anchor", "left")
+              .style("alignment-baseline", "middle")
+      } else {
+        var grouped_race = d3.flatRollup(data, v => v.length, d => d.Offender_race, d => d.Offense);
+        var flatten_race = grouped_race.map(([Offender_race, Offense, Count]) => ({Offense, Offender_race, Count}));
+        console.log(flatten_race);
+        var key = ["Assault", "Intimidation", "Others", "Property"];
+        console.log(flatten_race);
+        var filter_assault = flatten_race.filter(function(d){
+          if (d["Offense"] == "Assault") {
+            return d;
+          }
+        });
+        var filter_assault_array = filter_assault.map(function(d) {return d.Count;})
+        var filter_intimidation = flatten_race.filter(function(d){
+          if (d["Offense"] == "Intimidation") {
+            return d;
+          }
+        });
+        var filter_intimidation_array = filter_intimidation.map(function(d) {return d.Count;});
+        var filter_others = flatten_race.filter(function(d){
+          if (d["Offense"] == "Others") {
+            return d;
+          }
+        });
+        var filter_others_array = filter_others.map(function(d) {return d.Count;});
+        var filter_property = flatten_race.filter(function(d){
+          if (d["Offense"] == "Property") {
+            return d;
+          }
+        });
+        var filter_property_array = filter_property.map(function(d) {return d.Count;});
+        var Offender_race_arr = Array.from(d3.rollup(flatten_race, v => v.length, d => d.Offender_race).keys())
+        var stack_data = [];
+        for (let i = 0; i < Offender_race_arr.length; i++) {
+          stack_data.push({Offender_race: Offender_race_arr[i], Assault: filter_assault_array[i], Intimidation: filter_intimidation_array[i],
+            Others: filter_others_array[i], Property: filter_property_array[i]});
+        }
+        console.log(stack_data);
+        var series = d3.stack().keys(key)(stack_data);
+        console.log(series);
+        // create a tooltip
+            const Tooltip = svg_q2
+                            .append("text")
+                            .attr("text-anchor", "end")
+                            .attr("x", 650)
+                            .attr("y", 600)
+                            .style("opacity", 0)
+                            .style("font-size", 17);
+
+        // Three function that change the tooltip when user hover / move / leave a cell
+          const mouseover = function(event,d) {
+            Tooltip.style("opacity", 1)
+            d3.selectAll(".gbars").style("opacity", .2)
+            d3.select(this).style("fill", "black")
+            d3.select(this.parentNode)
+              .style("stroke", "black")
+              .style("opacity", 1)
+          }
+          const mousemove = function(event,d,i) {
+            grp = d3.select(this.parentNode).datum().key;
+            val = d.data[grp];
+            Tooltip.text("There are " + val + " counts of "+ grp + " recorded for " + d.data.Offender_race  + " offenders.");
+          }
+          const mouseleave = function(event,d) {
+            Tooltip.style("opacity", 0)
+            d3.selectAll(".gbars").style("opacity", 1).style("stroke", "none")
+            d3.select(this).style("fill", d3.select(this.parentNode).attr("fill"))
+           }
+        // plotting stacked bar chart
+        var xScale = d3.scaleBand()
+    						.domain(d3.range(Offender_race_arr.length))
+    						.range([padding, svgwidth_q2-padding])
+    						.paddingInner(0.05);
+
+        var yScale = d3.scaleLinear()
+    						.domain([0, d3.max(stack_data, function(d){
+    							return d.Assault + d.Intimidation + d.Others + d.Property;
+    						})])
+    						.range([svgheight_q2-padding, padding]);
+        /*group bars with respect to the secondary Key */
+        var groups = svg_q2.selectAll(".gbars").data(series).enter().append("g")
+                            .attr("class", "gbars").attr("fill", function(d, i) {return d3.schemeCategory10[i]});
+        //draw a bar for each Key value
+        var rects = groups.selectAll("rect").data(function(d) {
+                            return d;
+                        }).enter().append("rect")
+                        .attr("x", function(d, i) {
+                            return xScale(i);
+                        }).attr("y", function(d) {
+                            return yScale(d[1]);
+                        }).attr("width", function(d) {
+                            return xScale.bandwidth();
+                        }).attr("height", function(d) {
+                            return yScale(d[0])-yScale(d[1]);
+                        }).on("mouseover", mouseover)
+                        .on("mousemove", mousemove)
+                        .on("mouseleave", mouseleave);
+
+        var xAxis = d3.axisBottom().scale(xScale);
+        xAxis.tickFormat((d,i) => Offender_race_arr[i]);
+        var yAxis = d3.axisLeft().scale(yScale);
+        svg_q2.append("g").call(xAxis).attr("class", "xAxis").attr("transform","translate(0,550)");
+        svg_q2.append("g").call(yAxis).attr("class", "yAxis").attr("transform","translate(150,0)");
+
+
+          // Legend
+          // Add one dot in the legend for each name.
+          svg_q2.selectAll("mydots2")
+            .data(key)
+            .enter()
+            .append("circle")
+              .attr("cx", 550)
+              .attr("cy", function(d,i){ return 100 + i*25}) // 100 is where the first dot appears. 25 is the distance between dots
+              .attr("r", 7)
+              .style("fill", function(d, i){ return d3.schemeCategory10[i]})
+
+          // Add one dot in the legend for each name.
+          svg_q2.selectAll("mylabels2")
+            .data(key)
+            .enter()
+            .append("text")
+              .attr("x", 570)
+              .attr("y", function(d,i){ return 100 + i*25}) // 100 is where the first dot appears. 25 is the distance between dots
+              .style("fill", function(d, i){ return d3.schemeCategory10[i]})
+              .text(function(d){ return d})
+              .attr("text-anchor", "left")
+              .style("alignment-baseline", "middle")
       }
-    });
-    var filter_intimidation_array = filter_intimidation.map(function(d) {return d.Count;});
-    var filter_others = flatten_race.filter(function(d){
-      if (d["Offense"] == "Others") {
-        return d;
-      }
-    });
-    var filter_others_array = filter_others.map(function(d) {return d.Count;});
-    var filter_property = flatten_race.filter(function(d){
-      if (d["Offense"] == "Property") {
-        return d;
-      }
-    });
-    var filter_property_array = filter_property.map(function(d) {return d.Count;});
-    var victim_race_arr = Array.from(d3.rollup(flatten_race, v => v.length, d => d.Victim_race).keys())
-    var stack_data = [];
-    for (let i = 0; i < victim_race_arr.length; i++) {
-      stack_data.push({Victim_race: victim_race_arr[i], Assault: filter_assault_array[i], Intimidation: filter_intimidation_array[i],
-        Others: filter_others_array[i], Property: filter_property_array[i]});
     }
-    console.log(stack_data);
-    var series = d3.stack().keys(key)(stack_data);
-    console.log(series);
-    // create a tooltip
-        const Tooltip = svg_q2
-                        .append("text")
-                        .attr("text-anchor", "end")
-                        .attr("x", 650)
-                        .attr("y", 600)
-                        .style("opacity", 0)
-                        .style("font-size", 17);
-
-    // Three function that change the tooltip when user hover / move / leave a cell
-      const mouseover = function(event,d) {
-        Tooltip.style("opacity", 1)
-        d3.selectAll(".gbars").style("opacity", .2)
-        d3.select(this).style("fill", "black")
-        d3.select(this.parentNode)
-          .style("stroke", "black")
-          .style("opacity", 1)
-      }
-      const mousemove = function(event,d,i) {
-        grp = d3.select(this.parentNode).datum().key;
-        val = d.data[grp];
-        Tooltip.text("There are " + val + " counts of "+ grp + " recorded for " + d.data.Victim_race);
-      }
-      const mouseleave = function(event,d) {
-        Tooltip.style("opacity", 0)
-        d3.selectAll(".gbars").style("opacity", 1).style("stroke", "none")
-        d3.select(this).style("fill", d3.select(this.parentNode).attr("fill"))
-       }
-    // plotting stacked bar chart
-    var xScale = d3.scaleBand()
-						.domain(d3.range(victim_race_arr.length))
-						.range([padding, svgwidth_q2-padding])
-						.paddingInner(0.05);
-
-    var yScale = d3.scaleLinear()
-						.domain([0, d3.max(stack_data, function(d){
-							return d.Assault + d.Intimidation + d.Others + d.Property;
-						})])
-						.range([svgheight_q2-padding, padding]);
-    /*group bars with respect to the secondary Key */
-    var groups = svg_q2.selectAll(".gbars").data(series).enter().append("g")
-                        .attr("class", "gbars").attr("fill", function(d, i) {return d3.schemeCategory10[i]});
-    //draw a bar for each Key value
-    var rects = groups.selectAll("rect").data(function(d) {
-                        return d;
-                    }).enter().append("rect")
-                    .attr("x", function(d, i) {
-                        return xScale(i);
-                    }).attr("y", function(d) {
-                        return yScale(d[1]);
-                    }).attr("width", function(d) {
-                        return xScale.bandwidth();
-                    }).attr("height", function(d) {
-                        return yScale(d[0])-yScale(d[1]);
-                    }).on("mouseover", mouseover)
-                    .on("mousemove", mousemove)
-                    .on("mouseleave", mouseleave);
-
-    var xAxis = d3.axisBottom().scale(xScale);
-    xAxis.tickFormat((d,i) => victim_race_arr[i]);
-    var yAxis = d3.axisLeft().scale(yScale);
-    svg_q2.append("g").call(xAxis).attr("class", "xAxis").attr("transform","translate(0,550)");
-    svg_q2.append("g").call(yAxis).attr("class", "yAxis").attr("transform","translate(150,0)");
-
-
-      // Legend
-      // Add one dot in the legend for each name.
-      svg_q2.selectAll("mydots2")
-        .data(key)
-        .enter()
-        .append("circle")
-          .attr("cx", 550)
-          .attr("cy", function(d,i){ return 100 + i*25}) // 100 is where the first dot appears. 25 is the distance between dots
-          .attr("r", 7)
-          .style("fill", function(d, i){ return d3.schemeCategory10[i]})
-
-      // Add one dot in the legend for each name.
-      svg_q2.selectAll("mylabels2")
-        .data(key)
-        .enter()
-        .append("text")
-          .attr("x", 570)
-          .attr("y", function(d,i){ return 100 + i*25}) // 100 is where the first dot appears. 25 is the distance between dots
-          .style("fill", function(d, i){ return d3.schemeCategory10[i]})
-          .text(function(d){ return d})
-          .attr("text-anchor", "left")
-          .style("alignment-baseline", "middle")
   });
 }
 
