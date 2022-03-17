@@ -5,6 +5,7 @@ function plots() {
   	question1_2(q1_2_filePath);
     question2(filePath);
     question3(filePath);
+    question4(filePath);
     question5(filePath);
     question6(filePath);
 
@@ -464,6 +465,33 @@ var question3 = function (filePath) {
 
   });
 }
+
+var question4=function(filePath){
+  var svgheight_q4 = 700;
+  var svgwidth_q4 = 700;
+  var padding = 150;
+  svg_q4 = d3.select("#q4_plot").append("svg").attr("id", "q4plot").attr("width", svgwidth_q4).attr("height", svgheight_q4);
+  var rowConverter = function(d){
+      return {
+          Region: d.Region,
+          Juvenile_Offender_Count: parseFloat(d.Juvenile_Offeneder_Count)
+      };
+  }
+  const data_frame = d3.csv(filePath, rowConverter);
+  data_frame.then(function(data){
+    // Filter null values
+    var null_filter = data.filter(function(d) {
+      if (d["Juvenile_Offender_Count"] != 0) {
+          return d;
+        }
+    });
+    console.log(null_filter);
+    sorted_region = null_filter.sort((a, b) => d3.ascending(a.Region, b.Region));
+    juvenile_grouped = d3.group(sorted_region, d => d.Region);
+    console.log(juvenile_grouped);
+  });
+}
+
 
 var question5=function(filePath){
   var svgheight_q5 = 700;
