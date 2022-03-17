@@ -302,7 +302,7 @@ var question3 = function (filePath) {
 
     const mousemove = function (event, d) {
       tooltip
-        .html(`City: ${d.city} <br> 
+        .html(`City: ${d.city} <br>
                Average Victim Count: ${avgVicCntByCity.get(d.city)} <br>
                Average Offender Count: ${avgOffCntByCity.get(d.city)} <br>`)
         .style("left", (event.x) / 2 + "px") // It is important to put the +90: other wise the tooltip is exactly where the point is an it creates a weird effect
