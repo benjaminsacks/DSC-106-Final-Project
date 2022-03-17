@@ -5,6 +5,8 @@ function plots() {
   	question1_2(q1_2_filePath);
     question2(filePath);
     question3(filePath);
+    question5(filePath);
+    question6(filePath);
 
 }
 
@@ -253,8 +255,6 @@ var question3 = function (filePath) {
       sorted_city = data.sort((a, b) => d3.ascending(a.City, b.City));
       offenders_grouped = d3.rollup(sorted_city, v => d3.mean(v, d => d.Offender_count), d => d.City);
       victims_grouped = d3.rollup(sorted_city, v => d3.mean(v, d => d.Victim_count), d => d.City);
-      console.log(offenders_grouped);
-      console.log(victims_grouped);
       // Add a tooltip div. Here I define the general feature of the tooltip: stuff that do not depend on the data point.
       // Its opacity is set to 0: we don't see it by default.
           const tooltip = d3.select("#q3_plot")
@@ -322,4 +322,145 @@ var question3 = function (filePath) {
           svg_q3.append("g").call(yAxis).attr("class", "yAxis").attr("transform","translate(50,0)");
 
   });
+}
+
+var question5=function(filePath){
+  var svgheight_q5 = 700;
+  var svgwidth_q5 = 700;
+  var padding = 150;
+  svg_q5 = d3.select("#q5_plot").append("svg").attr("id", "q5plot").attr("width", svgwidth_q5).attr("height", svgheight_q5);
+  const data_frame = d3.csv(filePath);
+  data_frame.then(function(data){
+    // Filter null values
+    var null_filter = data.filter(function(d) {
+      if (d["Offender_race"] != "") {
+          return d;
+        }
+    });
+    // Pre sort the race so that the label would be come out as sorted
+    sorted_offenders = null_filter.sort((a, b) => d3.ascending(a.Offender_race, b.Offender_race));
+    sorted_victims = sorted_offenders.sort((a, b) => d3.ascending(a.Victim_race, b.Victim_race));
+    var grouped_offenders = d3.rollup(sorted_victims,
+        v => v.length,
+        d => d.Offender_race);
+    var grouped_victims = d3.rollup(sorted_victims,
+            v => v.length,
+            d => d.Victim_race);
+    var offenders = Array.from(grouped_offenders.keys());
+    var victims = Array.from(grouped_victims.keys());
+    var grouped = d3.flatRollup(sorted_victims,
+            v => v.length,
+            d => d.Victim_race, d => d.Offender_race);
+    console.log(grouped);
+    var mapped = grouped.map(([Victim_race, Offender_race, Value]) => ({Victim_race, Offender_race, Value}));
+    var grouped_roll = d3.rollup(sorted_victims,
+            v => v.length,
+            d => d.Victim_race, d => d.Offender_race);
+
+    var xScale = d3.scaleBand()
+            .domain(offenders)
+            .range([padding, svgwidth_q5-padding])
+            .paddingInner(0.05);
+
+    var yScale = d3.scaleBand()
+            .domain(victims)
+            .range([svgheight_q5-padding, padding])
+            .paddingInner(0.05);
+
+    var xAxis = d3.axisBottom().scale(xScale);
+    var yAxis = d3.axisLeft().scale(yScale);
+    svg_q5.append("g").call(xAxis).attr("class", "xAxis").attr("transform","translate(0,550)");
+    svg_q5.append("g").call(yAxis).attr("class", "yAxis").attr("transform","translate(150,0)");
+    // Build color scale
+    const myColor = d3.scaleLinear()
+              .range(["white", "#69b3a2"])
+              .domain([1, 9000])
+      // create a tooltip
+    const tooltip_4 = d3.select("#q5_plot")
+      .append("div")
+      .style("opacity", 0)
+      .attr("class", "tooltip")
+      .style('position', 'absolute')
+      .style("background-color", "white")
+      .style("border", "solid")
+      .style("border-width", "2px")
+      .style("border-radius", "5px")
+      .style("padding", "5px")
+
+    // A function that change this tooltip when the user hover a point.
+      const mouseover = function(event, d) {
+              tooltip_4
+                .style("opacity", 1);
+              tooltip_4
+                .html(d.Offender_race + '/ ' + d.Victim_race + ' : '+ d.Value);
+              tooltip_4.style("left", event.pageX + "px").style("top", event.pageY+ "px");
+            };
+
+            const mousemove = function(event, d) {
+              tooltip_4
+                .html(d.Offender_race + '/ ' + d.Victim_race + ' : '+ d.Value);
+              tooltip_4.style("left", event.pageX + "px").style("top", event.pageY+ "px");
+
+            };
+
+            // A function that change this tooltip when the leaves a point: just need to set opacity to 0 again
+            const mouseleave = function(event,d) {
+              tooltip_4
+                .transition()
+                .duration(200)
+                .style("opacity", 0)
+            };
+
+            // add the squares
+              svg_q5.selectAll()
+                .data(mapped, function(d) {return d.Victim_race+':'+d.Offender_race;})
+                .enter()
+                .append("rect")
+                  .attr("x", function(d) { return xScale(d.Victim_race);})
+                  .attr("y", function(d, i) { return yScale(d.Offender_race); })
+                  .attr("width", xScale.bandwidth() )
+                  .attr("height", yScale.bandwidth() )
+                  .style("fill", function(d, i) { return myColor(d.Value);} )
+                .on("mouseover", mouseover)
+                .on("mousemove", mousemove)
+                .on("mouseleave", mouseleave)
+  });
+}
+var question6=function(filePath){
+  var svgheight_q6 = 700;
+  var svgwidth_q6 = 700;
+  var padding = 150;
+  svg_q6 = d3.select("#q6_plot").append("svg").attr("id", "q6plot").attr("width", svgwidth_q6).attr("height", svgheight_q6);
+  var projection = d3.geoAlbersUsa()
+    .translate([svgwidth_q6/2,svgheight_q6/2])
+    .scale(1070/960*svgwidth_q6); // scale the scale factor, otherwise map will overflow SVG bounds.
+  const data_frame = d3.csv(filePath);
+  d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson").then(function(geojson){
+
+      geojson.features = geojson.features.filter( function(d){return d.properties.name=="USA"} )
+
+   // Draw the map
+   svg_q6.append("g")
+       .selectAll("path")
+       .data(geojson.features)
+       .enter().append("path")
+           .attr("fill", "#69b3a2")
+           .attr("d", d3.geoPath()
+               .projection(projection)
+           )
+           .style("stroke", "#fff");
+
+    data_frame.then(function(data){
+        // Pre sort the state so that the label would be come out as sorted
+        sorted_state = data.sort((a, b) => d3.ascending(a.State, b.State));
+        var grouped_state = d3.flatRollup(sorted_state,
+            v => v.length,
+            d => d.State);
+        var data = grouped_state.map(([State, Value]) => ({State, Value}));
+        //d3.json("https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json").then( function(data) {
+        //d3.json("https://d3js.org/us-10m.v1.json", function(error, us) {
+  })
+
+});
+
 }
