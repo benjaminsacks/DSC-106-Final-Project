@@ -433,6 +433,61 @@ var question6=function(filePath){
 
   const data_frame = d3.csv(filePath);
   data_frame.then(function(data){
+    // Add a tooltip div. Here I define the general feature of the tooltip: stuff that do not depend on the data point.
+    // Its opacity is set to 0: we don't see it by default.
+        const tooltip = d3.select("#q3_plot")
+          .append("div")
+          .style("opacity", 0)
+          .attr("class", "tooltip")
+          .style('position', 'absolute')
+          .style("background-color", "white")
+          .style("border", "solid")
+          .style("border-width", "1px")
+          .style("border-radius", "5px")
+          .style("padding", "10px");
+
+
+
+        // A function that change this tooltip when the user hover a point.
+        const mouseover = function(event, d) {
+          d3.selectAll(".Country")
+            .style("opacity", .5)
+          d3.select(this)
+            .style("opacity", 1)
+            .style("fill", "red")
+            .style("stroke", "black")
+          tooltip
+            .style("opacity", 1);
+          tooltip
+                .html(d.properties.name + '<br> Total count of hate crimes: ' + data.get(d.properties.name));
+          tooltip.style("left", event.pageX + "px").style("top", event.pageY+ "px");
+        };
+
+        const mousemove = function(event, d) {
+          d3.selectAll(".Country")
+            .style("opacity", .5)
+          d3.select(this)
+            .style("opacity", 1)
+            .style("fill", "red")
+            .style("stroke", "black")
+          tooltip
+            .style("opacity", 1);
+          tooltip
+                .html(d.properties.name + '<br> Total count of hate crimes: ' + data.get(d.properties.name));
+          tooltip.style("left", event.pageX + "px").style("top", event.pageY+ "px");
+
+        };
+
+        // A function that change this tooltip when the leaves a point: just need to set opacity to 0 again
+        const mouseleave = function(event,d) {
+          d3.selectAll(".Country")
+            .style("opacity", 1)
+          d3.select(this)
+            .style("fill", color(data.get(d.properties.name)))
+            .style("stroke", "white")
+          tooltip
+            .style("opacity", 0)
+        };
       // Pre sort the state so that the label would be come out as sorted
       sorted_state = data.sort((a, b) => d3.ascending(a.State, b.State));
       var grouped_state = d3.flatRollup(sorted_state,
@@ -456,7 +511,11 @@ var question6=function(filePath){
           .data(topojson.feature(geojson, geojson.objects.states).features)
           .join("path")
             .attr("fill", d => color(data.get(d.properties.name)))
-            .attr("d", path);
+            .attr("d", path)
+            .attr("class", function(d){ return "States" } )
+            .on("mouseover", mouseover)
+            .on("mousemove", mousemove)
+            .on("mouseleave", mouseleave);
 
         svg_q6.append("path")
             .datum(topojson.mesh(geojson, geojson.objects.states, (a, b) => a !== b))
@@ -464,8 +523,8 @@ var question6=function(filePath){
             .attr("stroke", "white")
             .attr("stroke-linejoin", "round")
             .attr("d", path);
-      //d3.json("https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json").then( function(data) {
-      //d3.json("https://d3js.org/us-10m.v1.json", function(error, us) {
+
+
     });
   });
 
