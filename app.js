@@ -440,7 +440,13 @@ var question6=function(filePath){
           v => v.length,
           d => d.State);
       var data = grouped_state.map(([State, Value]) => ({State, Value}));
-      var color = d3.scaleQuantize([1, 7], d3.schemeReds[6])
+      console.log(d3.min(data, d=>d.Value))
+      var color = d3.scaleLinear()
+                .range(["white", "#69b3a2"])
+                .domain([d3.min(data, d=>d.Value), d3.max(data, d=>d.Value)])
+      var data = d3.rollup(sorted_state,
+          v => v.length,
+          d => d.State);
       var path = d3.geoPath()
       var format = d => `${d}%`
       d3.json("https://cdn.jsdelivr.net/npm/us-atlas@3/states-albers-10m.json").then(function(geojson){
@@ -451,7 +457,7 @@ var question6=function(filePath){
           .selectAll("path")
           .data(topojson.feature(geojson, geojson.objects.states).features)
           .join("path")
-            .attr("fill", "blue")
+            .attr("fill", d => color(data.get(d.properties.name)))
             .attr("d", path);
 
         svg_q6.append("path")
