@@ -2,7 +2,6 @@ function plots() {
   var filePath = "data/subset_hate.csv";
   var q1_2_filePath = "data/q1_2.csv";
   question1(filePath);
-  question1_2(q1_2_filePath);
   question2(filePath);
   question3(filePath);
   question4(filePath);
@@ -15,10 +14,13 @@ var question1 = function (filePath) {
   var svgheight_q1 = 600;
   var svgwidth_q1 = 1000;
   var padding = 150;
-  svg_q1 = d3.select("#q1_plot").append("svg").attr("id", "q1plot").attr("width", svgwidth_q1).attr("height", svgheight_q1);
+  svg_q1 = d3.select("#q1_plot")
+    .append("svg")
+    .attr("id", "q1plot")
+    .attr("width", svgwidth_q1 + padding)
+    .attr("height", svgheight_q1 + padding);
   const data_frame = d3.csv(filePath);
   data_frame.then(function (data) {
-    console.log(data);
     // Pre sort the year, so don't need to sort rollup (which is tedious)
     sorted_year = data.sort((a, b) => d3.ascending(a.Year, b.Year));
     year_grouped = d3.rollup(sorted_year, v => v.length, d => d.Year);
@@ -65,7 +67,7 @@ var question1 = function (filePath) {
     console.log(year_grouped);
     var xScale = d3.scaleBand()
       .domain(Array.from(year_grouped.keys()).reverse())
-      .range([svgwidth_q1 - 50, 50]);
+      .range([svgwidth_q1 - padding, 50]);
 
     var yScale = d3.scaleLinear().domain([0, d3.max(Array.from(year_grouped.values()))])
       .range([svgheight_q1, padding]);
@@ -102,12 +104,26 @@ var question1 = function (filePath) {
       .attr("class", "line") // Assign a class for styling
       .attr("d", line);  // Calls the line generator
 
+    // text label for the x axis
+    svg_q1.append("text")
+      .attr("transform",
+        "translate(" + (svgwidth_q1 / 2) + " ," +
+        (svgheight_q1 + 20) + ")")
+      .style("text-anchor", "middle")
+      .text("Year")
+      .attr("id", "axis-title");
+
+    // text label for the y axis
+    svg_q1.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 0)
+      .attr("x", -(svgheight_q1 / 2))
+      .attr("dy", "1em")
+      .style("text-anchor", "middle")
+      .text("# of Hate Crimes")
+      .attr("id", "axis-title");
+
   });
-}
-
-var question1_2 = function (filePath) {
-  const dataset = d3.csv(filePath);
-
 }
 
 var question2 = function (filePath) {
