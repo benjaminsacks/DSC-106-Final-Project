@@ -373,7 +373,7 @@ var question5=function(filePath){
     svg_q5.append("g").call(yAxis).attr("class", "yAxis").attr("transform","translate(150,0)");
     // Build color scale
     const myColor = d3.scaleSequential()
-                        .domain([1, 9000]).interpolator(d3.interpolateRdYlBu);
+                        .domain([1, 9000]).interpolator(d3.interpolateGreys);
       // create a tooltip
     const tooltip_4 = d3.select("#q5_plot")
       .append("div")
@@ -441,7 +441,7 @@ var question6=function(filePath){
       var data = grouped_state.map(([State, Value]) => ({State, Value}));
       console.log(d3.min(data, d=>d.Value))
       var color = d3.scaleSequential()
-                .domain([d3.min(data, d=>d.Value), d3.max(data, d=>d.Value)]).interpolator(d3.interpolateRdGy);
+                .domain([d3.min(data, d=>d.Value), d3.max(data, d=>d.Value)]).interpolator(d3.interpolateBlues);
       var data = d3.rollup(sorted_state,
           v => v.length,
           d => d.State);
