@@ -508,8 +508,65 @@ var question4 = function (filePath) {
     });
     console.log(null_filter);
     sorted_region = null_filter.sort((a, b) => d3.ascending(a.Region, b.Region));
-    juvenile_grouped = d3.group(sorted_region, d => d.Region);
+    juvenile_grouped = d3.rollup(sorted_region, v => [
+      d3.quantile(v.map(function(g) { return g.Juvenile_Offender_Count;}).sort(d3.ascending),.25),
+      d3.quantile(v.map(function(g) { return g.Juvenile_Offender_Count;}).sort(d3.ascending),.5),
+      d3.quantile(v.map(function(g) { return g.Juvenile_Offender_Count;}).sort(d3.ascending),.75),
+      d3.quantile(v.map(function(g) { return g.Juvenile_Offender_Count;}).sort(d3.ascending),.75) - d3.quantile(v.map(function(g) { return g.Juvenile_Offender_Count;}).sort(d3.ascending),.25),
+      d3.min(v.map(function(g) { return g.Juvenile_Offender_Count;})),
+      d3.max(v.map(function(g) { return g.Juvenile_Offender_Count;}))
+    ],d => d.Region);
     console.log(juvenile_grouped);
+    var xScale = d3.scaleBand()
+      .domain(Array.from(juvenile_grouped.keys()).reverse())
+      .range([svgwidth_q4 - padding, 50]);
+
+    var yScale = d3.scaleLinear().domain([0, d3.max(sorted_region, d=> d.Juvenile_Offender_Count)])
+      .range([svgheight_q4 - padding, padding]);
+    var xAxis = d3.axisBottom().scale(xScale);
+    var yAxis = d3.axisLeft().scale(yScale);
+    svg_q4.append("g").call(xAxis).attr("class", "xAxis").attr("transform", "translate(0,550)");
+    svg_q4.append("g").call(yAxis).attr("class", "yAxis").attr("transform", "translate(50,0)");
+    // Show the main vertical line
+  svg_q4
+    .selectAll("vertLines")
+    .data(juvenile_grouped)
+    .enter()
+    .append("line")
+      .attr("x1", function(d){return(xScale(Array.from(d.values())[0]) + 63)})
+      .attr("x2", function(d){return(xScale(Array.from(d.values())[0]) + 63)})
+      .attr("y1", function(d){
+        console.log(Array.from(d.values()));
+        return(yScale(Array.from(d.values())[1][4]))})
+      .attr("y2", function(d){return(yScale(Array.from(d.values())[1][5]))})
+      .attr("stroke", "black")
+      .style("width", 40)
+      // rectangle for the main box
+      var boxWidth = 100
+      svg_q4
+        .selectAll("boxes")
+        .data(juvenile_grouped)
+        .enter()
+        .append("rect")
+            .attr("x", function(d){return(xScale(Array.from(d.values())[0])-boxWidth/2 + 63)})
+            .attr("y", function(d){return(yScale(Array.from(d.values())[1][2]))})
+            .attr("height", function(d){return(yScale(Array.from(d.values())[1][0]) - yScale(Array.from(d.values())[1][2]))})
+            .attr("width", boxWidth )
+            .attr("stroke", "black")
+            .style("fill", "#69b3a2")
+
+      // Show the median
+      svg_q4
+        .selectAll("medianLines")
+        .data(juvenile_grouped)
+        .enter()
+        .append("line")
+          .attr("x1", function(d){return(xScale(Array.from(d.values())[0])-boxWidth/2 + 63) })
+          .attr("x2", function(d){return(xScale(Array.from(d.values())[0])+boxWidth/2 + 63) })
+          .attr("y1", function(d){return(yScale(Array.from(d.values())[1][1]))})
+          .attr("y2", function(d){return(yScale(Array.from(d.values())[1][1]))})
+          .attr("stroke", "black")
+          .style("width", 80)
   });
 }
 
