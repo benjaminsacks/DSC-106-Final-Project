@@ -731,7 +731,7 @@ var question6 = function (filePath) {
   data_frame.then(function (data) {
     // Add a tooltip div. Here I define the general feature of the tooltip: stuff that do not depend on the data point.
     // Its opacity is set to 0: we don't see it by default.
-    const tooltip = d3.select("#q3_plot")
+    const tooltip = d3.select("#q6_plot")
       .append("div")
       .style("opacity", 0)
       .attr("class", "tooltip")
@@ -779,7 +779,7 @@ var question6 = function (filePath) {
       d3.selectAll(".Country")
         .style("opacity", 1)
       d3.select(this)
-        .style("fill", color(data.get(d.properties.name)))
+        .style("fill", color(data.get(d.properties.name) ** 0.25))
         .style("stroke", "white")
       tooltip
         .style("opacity", 0)
@@ -791,8 +791,9 @@ var question6 = function (filePath) {
       d => d.State);
     var data = grouped_state.map(([State, Value]) => ({ State, Value }));
     console.log(d3.min(data, d => d.Value))
+    const scaleFactor = 0.25;
     var color = d3.scaleSequential()
-      .domain([d3.min(data, d => d.Value), d3.max(data, d => d.Value)]).interpolator(d3.interpolateBlues);
+      .domain([d3.min(data, d => d.Value) ** scaleFactor, d3.max(data, d => d.Value) ** scaleFactor]).interpolator(d3.interpolateBlues);
     var data = d3.rollup(sorted_state,
       v => v.length,
       d => d.State);
@@ -806,7 +807,7 @@ var question6 = function (filePath) {
         .selectAll("path")
         .data(topojson.feature(geojson, geojson.objects.states).features)
         .join("path")
-        .attr("fill", d => color(data.get(d.properties.name)))
+        .attr("fill", d => color(data.get(d.properties.name) ** scaleFactor))
         .attr("d", path)
         .attr("class", function (d) { return "States" })
         .on("mouseover", mouseover)
