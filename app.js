@@ -411,7 +411,11 @@ var question3 = function (filePath) {
   var svgheight_q3 = 600;
   var svgwidth_q3 = 1000;
   var padding = 150;
-  svg_q3 = d3.select("#q3_plot").append("svg").attr("id", "q3plot").attr("width", svgwidth_q3).attr("height", svgheight_q3);
+  svg_q3 = d3.select("#q3_plot")
+    .append("svg")
+    .attr("id", "q3plot")
+    .attr("width", svgwidth_q3 + padding)
+    .attr("height", svgheight_q3 + padding);
   const data_frame = d3.csv(filePath);
   data_frame.then(function (data) {
     // Pre sort the city, so don't need to sort rollup (which is tedious)
@@ -460,7 +464,7 @@ var question3 = function (filePath) {
     };
     var xScale = d3.scaleLinear()
       .domain([0, 10])
-      .range([50, svgwidth_q3 - 50]);
+      .range([50, svgwidth_q3]);
 
     var yScale = d3.scaleLinear().domain([0, 10])
       .range([svgheight_q3 - 30, padding]);
@@ -484,33 +488,29 @@ var question3 = function (filePath) {
     svg_q3.append("g").call(xAxis).attr("class", "xAxis").attr("transform", "translate(0,570)");
     svg_q3.append("g").call(yAxis).attr("class", "yAxis").attr("transform", "translate(50,0)");
 
+    // text label for the x axis
+    svg_q3.append("text")
+      .attr("transform",
+        "translate(" + (svgwidth_q3 / 2) + " ," +
+        (svgheight_q3 + 20) + ")")
+      .style("text-anchor", "middle")
+      .text("Average Number of Victims")
+      .attr("id", "axis-title");
+
+    // text label for the y axis
+    svg_q3.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 0)
+      .attr("x", -(svgheight_q3 / 2))
+      .attr("dy", "1em")
+      .style("text-anchor", "middle")
+      .text("Average Number of Offenders")
+      .attr("id", "axis-title");
   });
 }
 
 var question4 = function (filePath) {
-  var svgheight_q4 = 700;
-  var svgwidth_q4 = 700;
-  var padding = 150;
-  svg_q4 = d3.select("#q4_plot").append("svg").attr("id", "q4plot").attr("width", svgwidth_q4).attr("height", svgheight_q4);
-  var rowConverter = function (d) {
-    return {
-      Region: d.Region,
-      Juvenile_Offender_Count: parseFloat(d.Juvenile_Offeneder_Count)
-    };
-  }
-  const data_frame = d3.csv(filePath, rowConverter);
-  data_frame.then(function (data) {
-    // Filter null values
-    var null_filter = data.filter(function (d) {
-      if (d["Juvenile_Offender_Count"] != 0) {
-        return d;
-      }
-    });
-    console.log(null_filter);
-    sorted_region = null_filter.sort((a, b) => d3.ascending(a.Region, b.Region));
-    juvenile_grouped = d3.group(sorted_region, d => d.Region);
-    console.log(juvenile_grouped);
-  });
+
 }
 
 
@@ -518,7 +518,11 @@ var question5 = function (filePath) {
   var svgheight_q5 = 700;
   var svgwidth_q5 = 700;
   var padding = 150;
-  svg_q5 = d3.select("#q5_plot").append("svg").attr("id", "q5plot").attr("width", svgwidth_q5).attr("height", svgheight_q5);
+  svg_q5 = d3.select("#q5_plot")
+    .append("svg")
+    .attr("id", "q5plot")
+    .attr("width", svgwidth_q5 + padding)
+    .attr("height", svgheight_q5 + padding);
   const data_frame = d3.csv(filePath);
   data_frame.then(function (data) {
     // Filter null values
@@ -613,7 +617,29 @@ var question5 = function (filePath) {
       .on("mouseover", mouseover)
       .on("mousemove", mousemove)
       .on("mouseleave", mouseleave)
+
+
+    // text label for the x axis
+    svg_q5.append("text")
+      .attr("transform",
+        "translate(" + (svgwidth_q5 / 2) + " ," +
+        (svgheight_q5 - padding + 50) + ")")
+      .style("text-anchor", "middle")
+      .text("Victim Race")
+      .attr("id", "axis-title");
+
+    // text label for the y axis
+    svg_q5.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 0)
+      .attr("x", -(svgheight_q5 / 2))
+      .attr("dy", "1em")
+      .style("text-anchor", "middle")
+      .text("Offender Race")
+      .attr("id", "axis-title");
   });
+
+
 }
 var question6 = function (filePath) {
   var svgheight_q6 = 700;
