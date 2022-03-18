@@ -566,8 +566,9 @@ var question5 = function (filePath) {
     svg_q5.append("g").call(xAxis).attr("class", "xAxis").attr("transform", "translate(0,550)");
     svg_q5.append("g").call(yAxis).attr("class", "yAxis").attr("transform", "translate(150,0)");
     // Build color scale
+    const scaleFactor = 0.25;
     const myColor = d3.scaleSequential()
-      .domain([1, 9000]).interpolator(d3.interpolateGreys);
+      .domain([1, (8591 ** scaleFactor)]).interpolator(d3.interpolateRgb("white", "#08306B"));
     // create a tooltip
     const tooltip_4 = d3.select("#q5_plot")
       .append("div")
@@ -613,7 +614,7 @@ var question5 = function (filePath) {
       .attr("y", function (d, i) { return yScale(d.Offender_race); })
       .attr("width", xScale.bandwidth())
       .attr("height", yScale.bandwidth())
-      .style("fill", function (d, i) { return myColor(d.Value); })
+      .style("fill", function (d, i) { return myColor(d.Value ** scaleFactor); })
       .on("mouseover", mouseover)
       .on("mousemove", mousemove)
       .on("mouseleave", mouseleave)
