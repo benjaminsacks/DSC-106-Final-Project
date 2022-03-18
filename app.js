@@ -64,7 +64,7 @@ var question1 = function (filePath) {
         .duration(200)
         .style("opacity", 0)
     };
-    console.log(year_grouped);
+
     var xScale = d3.scaleBand()
       .domain(Array.from(year_grouped.keys()).reverse())
       .range([svgwidth_q1 - padding, 50]);
@@ -149,9 +149,9 @@ var question2 = function (filePath) {
       if (victim) {
         var grouped_race = d3.flatRollup(data, v => v.length, d => d.Victim_race, d => d.Offense);
         var flatten_race = grouped_race.map(([Victim_race, Offense, Count]) => ({ Offense, Victim_race, Count }));
-        console.log(flatten_race);
+        (flatten_race);
         var key = ["Assault", "Intimidation", "Others", "Property"];
-        console.log(flatten_race);
+        (flatten_race);
         var filter_assault = flatten_race.filter(function (d) {
           if (d["Offense"] == "Assault") {
             return d;
@@ -184,9 +184,9 @@ var question2 = function (filePath) {
             Others: filter_others_array[i], Property: filter_property_array[i]
           });
         }
-        console.log(stack_data);
+        (stack_data);
         var series = d3.stack().keys(key)(stack_data);
-        console.log(series);
+        (series);
         // create a tooltip
         const Tooltip = svg_q2
           .append("text")
@@ -277,9 +277,9 @@ var question2 = function (filePath) {
       } else {
         var grouped_race = d3.flatRollup(data, v => v.length, d => d.Offender_race, d => d.Offense);
         var flatten_race = grouped_race.map(([Offender_race, Offense, Count]) => ({ Offense, Offender_race, Count }));
-        console.log(flatten_race);
+        (flatten_race);
         var key = ["Assault", "Intimidation", "Others", "Property"];
-        console.log(flatten_race);
+        (flatten_race);
         var filter_assault = flatten_race.filter(function (d) {
           if (d["Offense"] == "Assault") {
             return d;
@@ -312,9 +312,9 @@ var question2 = function (filePath) {
             Others: filter_others_array[i], Property: filter_property_array[i]
           });
         }
-        console.log(stack_data);
+        (stack_data);
         var series = d3.stack().keys(key)(stack_data);
-        console.log(series);
+        (series);
         // create a tooltip
         const Tooltip = svg_q2
           .append("text")
@@ -528,7 +528,7 @@ var question4 = function (filePath) {
         return d;
       }
     });
-    console.log(null_filter);
+    (null_filter);
     sorted_region = null_filter.sort((a, b) => d3.ascending(a.Region, b.Region));
     juvenile_grouped = d3.rollup(sorted_region, v => [
       d3.quantile(v.map(function(g) { return g.Juvenile_Offender_Count;}).sort(d3.ascending),.25),
@@ -538,7 +538,7 @@ var question4 = function (filePath) {
       d3.min(v.map(function(g) { return g.Juvenile_Offender_Count;})),
       d3.max(v.map(function(g) { return g.Juvenile_Offender_Count;}))
     ],d => d.Region);
-    console.log(juvenile_grouped);
+    (juvenile_grouped);
     var xScale = d3.scaleBand()
       .domain(Array.from(juvenile_grouped.keys()).reverse())
       .range([svgwidth_q4 - padding, 50]);
@@ -558,7 +558,7 @@ var question4 = function (filePath) {
       .attr("x1", function(d){return(xScale(Array.from(d.values())[0]) + 63)})
       .attr("x2", function(d){return(xScale(Array.from(d.values())[0]) + 63)})
       .attr("y1", function(d){
-        console.log(Array.from(d.values()));
+        (Array.from(d.values()));
         return(yScale(Array.from(d.values())[1][4]))})
       .attr("y2", function(d){return(yScale(Array.from(d.values())[1][5]))})
       .attr("stroke", "black")
@@ -624,7 +624,7 @@ var question5 = function (filePath) {
     var grouped = d3.flatRollup(sorted_victims,
       v => v.length,
       d => d.Victim_race, d => d.Offender_race);
-    console.log(grouped);
+    (grouped);
     var mapped = grouped.map(([Victim_race, Offender_race, Value]) => ({ Victim_race, Offender_race, Value }));
     var grouped_roll = d3.rollup(sorted_victims,
       v => v.length,
